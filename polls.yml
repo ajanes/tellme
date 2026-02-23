@@ -1,0 +1,31 @@
+subjects:
+  - id: operating_systems
+    language: it
+    topics:
+      - id: introduction
+        polls:
+          - id: operatingsystem
+            question: "Che tipo di computer usi?"
+            answer_type: single_choice
+            answers:
+              - Mac
+              - Linux
+              - Windows
+          - id: memory
+            question: "Quanta memoria ha il tuo computer?"
+            answer_type: single_choice
+            answers:
+              - 4 GB o meno
+              - 8 GB
+              - 16 GB
+              - 32 GB
+              - 64 GB o piu
+          - id: ssd_size
+            question: "Quanto spazio hai sul computer?"
+            answer_type: single_choice
+            answers:
+              - 128 GB o meno
+              - 256 GB
+              - 512 GB
+              - 1 TB
+              - 2 TB o piu

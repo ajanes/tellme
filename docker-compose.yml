@@ -1,0 +1,12 @@
+services:
+  poll-server:
+    build: .
+    container_name: poll-server
+    ports:
+      - "5001:5001"
+    environment:
+      FLASK_SECRET_KEY: "change-me"
+      POLL_FILE: "/app/polls.yml"
+    volumes:
+      - ./polls.yml:/app/polls.yml
+    restart: unless-stopped
