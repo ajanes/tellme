@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ poll.question }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-100 text-slate-900">
+    <main class="mx-auto flex min-h-screen w-full max-w-xl items-center px-4 py-6 sm:px-6 sm:py-10">
+      <section class="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-8">
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ poll.question }}</h1>
+        {% if error %}
+        <div class="mt-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">{{ error }}</div>
+        {% endif %}
+
+        {% if submitted_answer_display %}
+        <div class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
+          {{ ui.submitted_answer }} <span class="font-semibold">{{ submitted_answer_display }}</span>
+        </div>
+        {% endif %}
+
+        <form method="post" class="mt-6 space-y-4 sm:mt-8">
+          {% if poll.answer_type == "single_choice" %}
+          <fieldset class="space-y-3">
+            <legend class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ ui.tap_one_option }}</legend>
+            {% for answer in poll.answers %}
+            <button
+              type="submit"
+              name="answer_choice"
+              value="{{ answer }}"
+              class="w-full rounded-xl border px-4 py-4 text-left text-base font-semibold capitalize shadow-sm transition active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-blue-500 {% if answer in selected_answers %}border-blue-500 bg-blue-50{% else %}border-slate-300 bg-white hover:border-blue-300 hover:bg-blue-50{% endif %}"
+            >
+              {{ answer }}
+            </button>
+            {% endfor %}
+          </fieldset>
+          {% elif poll.answer_type == "multiple_choice" %}
+          <fieldset class="space-y-3">
+            <legend class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ ui.choose_one_or_more_options }}</legend>
+            {% for answer in poll.answers %}
+            <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-4 text-base font-semibold capitalize shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
+              <input
+                type="checkbox"
+                name="answer_choices"
+                value="{{ answer }}"
+                class="h-5 w-5 accent-blue-600"
+                {% if answer in selected_answers %}checked{% endif %}
+              />
+              <span>{{ answer }}</span>
+            </label>
+            {% endfor %}
+          </fieldset>
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            {{ ui.submit }}
+          </button>
+          {% elif poll.answer_type == "text" %}
+          <div>
+            <label for="answer_text" class="mb-2 block text-sm font-semibold uppercase tracking-wide text-slate-500">{{ ui.your_answer }}</label>
+            <input
+              id="answer_text"
+              name="answer_text"
+              type="text"
+              value="{{ text_value }}"
+              placeholder="{{ ui.enter_text }}"
+              class="w-full rounded-lg border border-slate-300 px-4 py-3 text-base outline-none ring-blue-500 transition focus:ring-2"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            {{ ui.submit }}
+          </button>
+          {% else %}
+          <p class="text-rose-700">{{ ui.unsupported_answer_type }} {{ poll.answer_type }}</p>
+          {% endif %}
+        </form>
+      </section>
+    </main>
+    <script>
+      const subjectId = {{ subject_id|tojson }};
+      const topicId = {{ topic_id|tojson }};
+      const pollId = {{ poll_id|tojson }};
+      const runId = {{ run_id|tojson }};
+      const syncApiUrl = `/api/teacher/${encodeURIComponent(subjectId)}/${encodeURIComponent(topicId)}/results?id=${encodeURIComponent(runId)}`;
+
+      async function syncWithTeacherSelection() {
+        try {
+          const response = await fetch(syncApiUrl, { cache: "no-store" });
+          if (!response.ok) {
+            return;
+          }
+          const data = await response.json();
+          const activePollId = data.active_poll_id;
+          if (activePollId && activePollId !== pollId) {
+            window.location.href = `/${subjectId}/${topicId}?id=${encodeURIComponent(runId)}`;
+          }
+        } catch (error) {
+          // Ignore temporary sync errors on student devices.
+        }
+      }
+
+      syncWithTeacherSelection();
+      setInterval(syncWithTeacherSelection, 2000);
+    </script>
+  </body>
+</html>
